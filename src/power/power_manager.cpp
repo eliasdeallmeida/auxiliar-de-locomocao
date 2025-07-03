@@ -1,10 +1,11 @@
-#include "power_manager.h"
-#include "hardware_setup.h"
+#include <Arduino.h>
+#include "power/power_manager.h"
+#include "hardware/hardware_setup.h"
 #include "esp_sleep.h"
 
 void enterDeepSleep() {
   esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN, 0);
-  Serial.println("[TERMINAL] Entrou em Deep Sleep");
+  Serial.println("[SLEEP] Entering Deep Sleep");
   delay(100);
   esp_deep_sleep_start();
 }
