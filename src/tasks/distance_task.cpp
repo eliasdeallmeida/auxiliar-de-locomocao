@@ -13,10 +13,10 @@ void distanceTask(void* parameter) {
       vibrateWithIntensity(255);
     } else if (distance <= 20.0) {
       Serial.println(">> Ahead");
-      vibrateWithIntensity(180);
+      vibrateWithIntensity(190);
     } else if (distance <= 30.0) {
       Serial.println(">> Approaching");
-      vibrateWithIntensity(120);
+      vibrateWithIntensity(130);
     } else {
       Serial.println(">> Out of range");
     }

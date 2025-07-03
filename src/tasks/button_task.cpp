@@ -11,10 +11,13 @@ void buttonTask(void* parameter) {
     bool currentState = digitalRead(BUTTON_PIN);
 
     if (lastState == HIGH && currentState == LOW) {
-      delay(50);  // debounce
+      delay(50);
       if (digitalRead(BUTTON_PIN) == LOW) {
-        Serial.println("[BUTTON] Pressed again, sleeping...");
+        Serial.println("[BOTÃO] Pressionado, entrando em Deep Sleep...");
         stopVibration();
+        while (digitalRead(BUTTON_PIN) == LOW) {
+          vTaskDelay(pdMS_TO_TICKS(50));  // Espera o botão ser solto
+        }
         enterDeepSleep();
       }
     }
