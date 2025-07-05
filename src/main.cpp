@@ -99,7 +99,7 @@ void setup() {
   }
 
   Serial.println("[BOOT] Woke up from Deep Sleep");
-  turnOnLED();
+  turnOnPowerLED();
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASSWORD);
