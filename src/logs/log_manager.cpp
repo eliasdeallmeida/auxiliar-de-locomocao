@@ -1,9 +1,12 @@
 #include "log_manager.h"
 #include <LittleFS.h>
 #include <time.h>
+#include <stdarg.h>
 
 #define LOG_FILE "/logs.txt"
 #define INDEX_FILE "/log_index.txt"
+#define SERIAL_LOG_FILE "/serial_log.txt"
+#define MAX_SERIAL_LOG_SIZE 100000
 
 String getLastLogs(int qtd) {
   File file = LittleFS.open("/logs.txt", "r");
@@ -79,4 +82,39 @@ bool clearLogs() {
   }
 
   return success;
+}
+
+void logPrint(const String& msg) {
+  Serial.print(msg);
+  File file = LittleFS.open(SERIAL_LOG_FILE, FILE_APPEND);
+  if (file) {
+    file.print(msg);
+    file.close();
+    if (file.size() > MAX_SERIAL_LOG_SIZE) LittleFS.remove(SERIAL_LOG_FILE); // Limpa se passar do limite
+  }
+}
+
+void logPrintln(const String& msg) {
+  Serial.println(msg);
+  File file = LittleFS.open(SERIAL_LOG_FILE, FILE_APPEND);
+  if (file) {
+    file.println(msg);
+    file.close();
+    if (file.size() > MAX_SERIAL_LOG_SIZE) LittleFS.remove(SERIAL_LOG_FILE);
+  }
+}
+
+void logPrintf(const char* format, ...) {
+  char buf[256];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buf, sizeof(buf), format, args);
+  va_end(args);
+  Serial.print(buf);
+  File file = LittleFS.open(SERIAL_LOG_FILE, FILE_APPEND);
+  if (file) {
+    file.print(buf);
+    file.close();
+    if (file.size() > MAX_SERIAL_LOG_SIZE) LittleFS.remove(SERIAL_LOG_FILE);
+  }
 }

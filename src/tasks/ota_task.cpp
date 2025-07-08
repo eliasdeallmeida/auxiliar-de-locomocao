@@ -4,7 +4,7 @@
 #include "../logs/log_manager.h"
 
 void otaTask(void* parameter) {
-  Serial.println("[OTA TASK] Iniciando task OTA");
+  logPrintln("[OTA TASK] Iniciando task OTA");
 
   // Aguardar conexão WiFi
   while (WiFi.status() != WL_CONNECTED) {
@@ -13,7 +13,7 @@ void otaTask(void* parameter) {
 
   // Inicializar OTA
   initOTA();
-  Serial.println("[OTA] Servidor OTA iniciado");
+  logPrintln("[OTA] Servidor OTA iniciado");
 
   while (true) {
     // Verificar se WiFi está conectado
@@ -24,14 +24,14 @@ void otaTask(void* parameter) {
       // Verificar status do OTA
       OTAStatus status = getOTAStatus();
       if (status == OTA_SUCCESS) {
-        Serial.println("[OTA] Atualização concluída com sucesso");
+        logPrintln("[OTA] Atualização concluída com sucesso");
       } else if (status == OTA_ERROR) {
         OTAInfo info = getOTAInfo();
-        Serial.println("[OTA] Erro na atualização: " + info.lastError);
+        logPrintln("[OTA] Erro na atualização: " + info.lastError);
       }
     } else {
-      Serial.println("[OTA TASK] WiFi desconectado, aguardando reconexão...");
-      Serial.println("[OTA] WiFi desconectado");
+      logPrintln("[OTA TASK] WiFi desconectado, aguardando reconexão...");
+      logPrintln("[OTA] WiFi desconectado");
     }
 
     // Delay da task

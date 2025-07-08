@@ -1,5 +1,7 @@
 #include "ota_manager.h"
 #include <Arduino.h>
+#include <LittleFS.h>
+#include "logs/log_manager.h"
 
 // Variáveis globais do OTA
 WebServer otaServer(OTA_PORT);
@@ -62,12 +64,17 @@ const char* serverIndex =
   "<head>"
     "<meta charset='utf-8'>"
     "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-    "<title>Atualização OTA - Auxiliar de Locomoção</title>"
+    "<title>OTA e Logs - Auxiliar de Locomoção</title>"
     "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
     "<style>"
       "body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f0f0; }"
       ".container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }"
       "h1 { color: #333; text-align: center; margin-bottom: 30px; }"
+      ".tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }"
+      ".tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; background: #f9f9f9; border: none; outline: none; font-size: 16px; transition: background 0.2s; }"
+      ".tab.active { background: #fff; border-bottom: 2px solid #2196F3; color: #2196F3; font-weight: bold; }"
+      ".tab-content { display: none; }"
+      ".tab-content.active { display: block; }"
       ".upload-form { margin: 20px 0; }"
       "input[type='file'] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }"
       "input[type='submit'] { background-color: #2196F3; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }"
@@ -79,25 +86,43 @@ const char* serverIndex =
       ".success { color: #4CAF50; }"
       ".error { color: #f44336; }"
       ".info { color: #2196F3; }"
+      ".logs-area { width: 100%; height: 350px; background: #222; color: #0f0; font-family: monospace; font-size: 14px; border-radius: 6px; padding: 12px; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; }"
     "</style>"
   "</head>"
   "<body>"
     "<div class='container'>"
-      "<h1>📤 Atualização de Firmware</h1>"
-      "<div class='upload-form'>"
-        "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
-          "<input type='file' name='update' accept='.bin' required>"
-          "<input type='submit' value='Atualizar Firmware'>"
-        "</form>"
+      "<h1>Auxiliar de Locomoção</h1>"
+      "<div class='tabs'>"
+        "<button class='tab active' onclick='showTab(0)'>Atualização OTA</button>"
+        "<button class='tab' onclick='showTab(1)'>Logs do Terminal</button>"
       "</div>"
-      "<div class='progress'>"
-        "<div class='progress-bar'>"
-          "<div class='progress-fill' id='progress-fill'></div>"
+      "<div class='tab-content active' id='tab-ota'>"
+        "<h2>📤 Atualização de Firmware</h2>"
+        "<div class='upload-form'>"
+          "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
+            "<input type='file' name='update' accept='.bin' required>"
+            "<input type='submit' value='Atualizar Firmware'>"
+          "</form>"
         "</div>"
-        "<div class='status' id='status'>Aguardando arquivo...</div>"
+        "<div class='progress'>"
+          "<div class='progress-bar'>"
+            "<div class='progress-fill' id='progress-fill'></div>"
+          "</div>"
+          "<div class='status' id='status'>Aguardando arquivo...</div>"
+        "</div>"
+      "</div>"
+      "<div class='tab-content' id='tab-logs'>"
+        "<h2>📝 Logs do Terminal</h2>"
+        "<div class='logs-area' id='logs-area'>Carregando logs...</div>"
       "</div>"
     "</div>"
     "<script>"
+      "function showTab(idx) {"
+        "$('.tab').removeClass('active');"
+        "$('.tab-content').removeClass('active');"
+        "$('.tab').eq(idx).addClass('active');"
+        "$('.tab-content').eq(idx).addClass('active');"
+      "}"
       "$('form').submit(function(e) {"
         "e.preventDefault();"
         "var form = $('#upload_form')[0];"
@@ -130,6 +155,22 @@ const char* serverIndex =
           "}"
         "});"
       "});"
+      "function fetchLogs() {"
+        "$.ajax({"
+          "url: '/logs',"
+          "type: 'GET',"
+          "success: function(data) {"
+            "$('#logs-area').text(data);"
+            "var logsArea = document.getElementById('logs-area');"
+            "logsArea.scrollTop = logsArea.scrollHeight;"
+          "},"
+          "error: function() {"
+            "$('#logs-area').text('Erro ao carregar logs.');"
+          "}"
+        "});"
+      "}"
+      "setInterval(fetchLogs, 2000);"
+      "fetchLogs();"
     "</script>"
   "</body>"
   "</html>";
@@ -147,6 +188,7 @@ void initOTA() {
   otaServer.on("/", HTTP_GET, handleRoot);
   otaServer.on("/update", HTTP_GET, handleServerIndex);
   otaServer.on("/doUpdate", HTTP_POST, handleUpdate, handleUpdateProgress);
+  otaServer.on("/logs", HTTP_GET, handleLogs); // <-- Adiciona rota de logs
   
   // Iniciar servidor
   otaServer.begin();
@@ -252,4 +294,16 @@ void handleUpdateProgress() {
       otaInfo.lastError = "Falha ao finalizar atualização";
     }
   }
+}
+
+void handleLogs() {
+  File file = LittleFS.open("/serial_log.txt", "r");
+  if (!file) {
+    otaServer.send(200, "text/plain", "(sem logs)");
+    return;
+  }
+  String logs = file.readString();
+  file.close();
+  otaServer.sendHeader("Access-Control-Allow-Origin", "*");
+  otaServer.send(200, "text/plain", logs);
 }

@@ -40,7 +40,7 @@ void handleNewMessages(int numNewMessages) {
     }
 
     String text = bot.messages[i].text;
-    Serial.println("Comando recebido: " + text);
+    logPrintln("Comando recebido: " + text);
 
     if (awaitingLogCount) {
       int count = text.toInt();
@@ -170,12 +170,16 @@ void setup() {
 
   configurePins();
 
+  if (!LittleFS.begin(true)) {
+    logPrintln("[ERRO] LittleFS não pôde ser montado.");
+  }
+
   if (!isWakingFromDeepSleep()) {
-    Serial.println("[BOOT] Normal startup. Going to sleep...");
+    logPrintln("[BOOT] Normal startup. Going to sleep...");
     enterDeepSleep();
   }
 
-  Serial.println("[BOOT] Woke up from Deep Sleep");
+  logPrintln("[BOOT] Woke up from Deep Sleep");
   turnOnPowerLED();
 
   WiFi.mode(WIFI_STA);
@@ -187,15 +191,10 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Conectando com o WiFi...");
+    logPrintln("Conectando com o WiFi...");
   }
 
-  Serial.print("IP adquirido da rede WiFi: ");
-  Serial.println(WiFi.localIP());
-
-  if (!LittleFS.begin(true)) {
-    Serial.println("[ERRO] LittleFS não pôde ser montado.");
-  }
+  logPrintln("IP adquirido da rede WiFi: " + WiFi.localIP().toString());
 
   configTime(-3 * 3600, 0, "pool.ntp.org");
 

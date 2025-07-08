@@ -8,29 +8,29 @@
 void distanceTask(void* parameter) {
   while (true) {
     float distance = readMedianDistance();
-    Serial.printf("[DISTANCE] %.2f cm\n", distance);
+    logPrintf("[DISTANCE] %.2f cm\n", distance);
     requestProximityAudio(distance);
 
     String message;
     
     if (distance <= 10.0) {
       message = "Próximo";
-      Serial.println(">> " + message);
+      logPrintln(">> " + message);
       vibrateWithIntensity(255);
     }
     else if (distance <= 20.0) {
       message = "Aproximando";
-      Serial.println(">> " + message);
+      logPrintln(">> " + message);
       vibrateWithIntensity(190);
     }
     else if (distance <= 30.0) {
       message = "Distante";
-      Serial.println(">> " + message);
+      logPrintln(">> " + message);
       vibrateWithIntensity(130);
     }
     else {
       message = "Fora de alcance";
-      Serial.println(">> " + message);
+      logPrintln(">> " + message);
     }
     appendLog(distance, message);
     delay(1000);

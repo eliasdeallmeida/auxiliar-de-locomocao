@@ -44,5 +44,6 @@ void handleRoot();
 void handleServerIndex();
 void handleUpdate();
 void handleUpdateProgress();
+void handleLogs();
 
 #endif // OTA_MANAGER_H

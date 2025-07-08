@@ -1,4 +1,5 @@
 #include "mp3_player.h"
+#include "logs/log_manager.h"
 #include "DFRobotDFPlayerMini.h"
 
 #define MP3_RX_PIN 27
@@ -11,7 +12,7 @@ static VoiceGender currentGender = MALE;
 void initMP3Player() {
     mp3Serial.begin(9600, SERIAL_8N1, MP3_RX_PIN, MP3_TX_PIN);
     if (!mp3.begin(mp3Serial)) {
-        Serial.println("[MP3] Falha ao inicializar DFPlayer Mini!");
+        logPrintln("[MP3] Falha ao inicializar DFPlayer Mini!");
         return;
     }
     mp3.volume(25); // Volume de 0 a 30
@@ -38,5 +39,5 @@ void setVolume(int volume) {
     if (volume > 30) volume = 30;
 
     mp3.volume(volume);
-    Serial.printf("[MP3] Volume alterado para: %d\n", volume);
+    logPrintf("[MP3] Volume alterado para: %d\n", volume);
 }
