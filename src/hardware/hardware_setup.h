@@ -5,8 +5,8 @@
 #define POWER_BUTTON_PIN 12
 #define BLUE_LED_PIN 32
 #define BOT_BUTTON_PIN 33
-#define TRIGGER_PIN 27
-#define ECHO_PIN 26
+#define TRIGGER_PIN 5
+#define ECHO_PIN 18
 #define VIBRATION_MOTOR_PIN 25
 
 void configurePins();

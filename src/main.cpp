@@ -8,12 +8,14 @@
 #include "power/power_manager.h"
 #include "tasks/distance_task.h"
 #include "tasks/button_task.h"
+#include "tasks/mp3_task.h"
+#include "actuators/mp3_player.h"
 
-#define BOT_TOKEN "BOT_TOKEN"
-#define CHAT_ID "CHAT_ID"
+#define BOT_TOKEN "7788356248:AAHG9BV8U_3qRmIWvW9j1-68_-Sraj0zeN0"
+#define CHAT_ID "7794870956"
 
-#define SSID "SSID"
-#define PASSWORD "PASSWORD"
+#define SSID "A25"
+#define PASSWORD "wifisga25"
 
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOT_TOKEN, client);
@@ -50,13 +52,15 @@ void handleNewMessages(int numNewMessages) {
     else if (text == "/start") {
       String welcome = "Bem vindo, " + from_name + "!\n";
       welcome += "Use os comandos:\n";
-      welcome += "/logs";
+      welcome += "/logs\n";
+      welcome += "/clearlogs\n";
+      welcome += "/voz";
       bot.sendMessage(chat_id, welcome, "");
     }
 
     else if (text == "/logs") {
-      awaitingLogCount = true;
-      bot.sendMessage(chat_id, "Quantos logs deseja exibir?\nInsira qualquer coisa para exibir a quantidade padrão (20 logs)", "");
+      String logs = getLastLogs(20);
+      bot.sendMessage(chat_id, logs, "");
     }
     else if (text == "/clearlogs") {
       bool success = clearLogs();
@@ -64,6 +68,16 @@ void handleNewMessages(int numNewMessages) {
         bot.sendMessage(chat_id, "✅ Todos os logs foram apagados e o contador foi reiniciado.", "");
       } else {
         bot.sendMessage(chat_id, "❌ Erro ao apagar os logs.", "");
+      }
+    }
+    else if (text == "/voz") {
+      VoiceGender gender = getVoiceGender();
+      if (gender == MALE) {
+        setVoiceGender(FEMALE);
+        bot.sendMessage(chat_id, "🔄 Voz alterada para feminina.", "");
+      } else {
+        setVoiceGender(MALE);
+        bot.sendMessage(chat_id, "🔄 Voz alterada para masculina.", "");
       }
     }
   }
@@ -125,6 +139,7 @@ void setup() {
   xTaskCreatePinnedToCore(distanceTask, "Distance Task", 4096, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(buttonTask, "Button Task", 2048, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(telegramTask, "Telegram", 8192, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(mp3Task, "MP3 Task", 4096, NULL, 1, NULL, 1);
 }
 
 void loop() {

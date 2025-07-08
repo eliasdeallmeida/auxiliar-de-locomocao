@@ -4,29 +4,24 @@
 
 #define LOG_FILE "/logs.txt"
 #define INDEX_FILE "/log_index.txt"
-#define MAX_LINES 100
 
-String getLastLogs(int count) {
-  File file = LittleFS.open(LOG_FILE, FILE_READ);
-  if (!file) return "Nenhum log encontrado.";
-
-  String lines[MAX_LINES];
-  int total = 0;
-
-  while (file.available() && total < MAX_LINES) {
-    lines[total++] = file.readStringUntil('\n');
-  }
+String getLastLogs(int qtd) {
+  File file = LittleFS.open("/logs.txt", "r");
+  if (!file) return "";
+  String content = file.readString();
   file.close();
 
-  int start = max(0, total - count);
-  int realCount = total - start;
-
-  String result = "📄 Últimos " + String(realCount) + " logs:\n";
-  for (int i = start; i < total; i++) {
-    result += lines[i] + "\n";
+  int count = 0;
+  String output = "";
+  for (int i = content.length() - 1; i >= 0; i--) {
+    if (content[i] == '\n') count++;
+    if (count == qtd) {
+      output = content.substring(i + 1);
+      break;
+    }
   }
-
-  return result;
+  if (output.length() == 0) return content;
+  return output;
 }
 
 int getNextLogIndex() {

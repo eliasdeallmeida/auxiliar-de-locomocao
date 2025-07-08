@@ -3,11 +3,13 @@
 #include "actuators/vibration_motor.h"
 #include "logs/log_manager.h"
 #include <Arduino.h>
+#include "tasks/mp3_task.h"
 
 void distanceTask(void* parameter) {
   while (true) {
     float distance = readMedianDistance();
     Serial.printf("[DISTANCE] %.2f cm\n", distance);
+    requestProximityAudio(distance);
 
     String message;
     
@@ -33,6 +35,6 @@ void distanceTask(void* parameter) {
     appendLog(distance, message);
     delay(1000);
     stopVibration();
-    vTaskDelay(pdMS_TO_TICKS(2000));  // wait 5 seconds
+    vTaskDelay(pdMS_TO_TICKS(2000));
   }
 }
