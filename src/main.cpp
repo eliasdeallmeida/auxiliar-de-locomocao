@@ -54,7 +54,8 @@ void handleNewMessages(int numNewMessages) {
       welcome += "Use os comandos:\n";
       welcome += "/logs\n";
       welcome += "/clearlogs\n";
-      welcome += "/voz";
+      welcome += "/voz\n";
+      welcome += "/volume <0-30>";
       bot.sendMessage(chat_id, welcome, "");
     }
 
@@ -78,6 +79,18 @@ void handleNewMessages(int numNewMessages) {
       } else {
         setVoiceGender(MALE);
         bot.sendMessage(chat_id, "🔄 Voz alterada para masculina.", "");
+      }
+    }
+    else if (text.startsWith("/volume")) {
+      // Extrai o valor do volume do comando
+      String volumeStr = text.substring(8); // Remove "/volume "
+      int volume = volumeStr.toInt();
+      
+      if (volume >= 0 && volume <= 30) {
+        setVolume(volume);
+        bot.sendMessage(chat_id, "🔊 Volume alterado para: " + String(volume), "");
+      } else {
+        bot.sendMessage(chat_id, "❌ Volume deve estar entre 0 e 30. Exemplo: /volume 15", "");
       }
     }
   }

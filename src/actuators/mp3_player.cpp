@@ -29,4 +29,14 @@ void setVoiceGender(VoiceGender gender) {
 
 VoiceGender getVoiceGender() {
     return currentGender;
-} 
+
+}
+
+void setVolume(int volume) {
+    // Garante que o volume esteja entre 0 e 30
+    if (volume < 0) volume = 0;
+    if (volume > 30) volume = 30;
+
+    mp3.volume(volume);
+    Serial.printf("[MP3] Volume alterado para: %d\n", volume);
+}

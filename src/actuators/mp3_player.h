@@ -12,5 +12,6 @@ void initMP3Player();
 void playProximityAudio(int nivel); // 1,2,3 masculino; 4,5,6 feminino
 void setVoiceGender(VoiceGender gender);
 VoiceGender getVoiceGender();
+void setVolume(int volume); // Volume de 0 a 30
 
-#endif 
+#endif
