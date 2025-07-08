@@ -9,7 +9,9 @@
 #include "tasks/distance_task.h"
 #include "tasks/button_task.h"
 #include "tasks/mp3_task.h"
+#include "tasks/ota_task.h"
 #include "actuators/mp3_player.h"
+#include "ota/ota_manager.h"
 
 #define BOT_TOKEN "7788356248:AAHG9BV8U_3qRmIWvW9j1-68_-Sraj0zeN0"
 #define CHAT_ID "7794870956"
@@ -55,7 +57,9 @@ void handleNewMessages(int numNewMessages) {
       welcome += "/logs\n";
       welcome += "/clearlogs\n";
       welcome += "/voz\n";
-      welcome += "/volume <0-30>";
+      welcome += "/volume <0-30>\n";
+      welcome += "/ota\n";
+      welcome += "/otastatus";
       bot.sendMessage(chat_id, welcome, "");
     }
 
@@ -92,6 +96,52 @@ void handleNewMessages(int numNewMessages) {
       } else {
         bot.sendMessage(chat_id, "❌ Volume deve estar entre 0 e 30. Exemplo: /volume 15", "");
       }
+    }
+    else if (text == "/ota") {
+      if (isOTAEnabled()) {
+        String ip = WiFi.localIP().toString();
+        String message = "🔧 **Servidor OTA Ativo**\n\n";
+        message += "📍 **IP:** " + ip + "\n";
+        message += "🌐 **URL:** http://" + ip + "\n";
+        message += "🔑 **Usuário:** admin\n";
+        message += "🔐 **Senha:** admin123\n\n";
+        message += "📱 Acesse o link acima para atualizar o firmware.";
+        bot.sendMessage(chat_id, message, "Markdown");
+      } else {
+        bot.sendMessage(chat_id, "❌ OTA não disponível - WiFi desconectado", "");
+      }
+    }
+    else if (text == "/otastatus") {
+      OTAStatus status = getOTAStatus();
+      OTAInfo info = getOTAInfo();
+      
+      String message = "🔧 **Status OTA**\n\n";
+      
+      switch (status) {
+        case OTA_IDLE:
+          message += "📊 **Status:** Ocioso\n";
+          break;
+        case OTA_UPDATING:
+          message += "📤 **Status:** Atualizando...\n";
+          if (info.updateTotalSize > 0) {
+            int progress = (info.updateProgress * 100) / info.updateTotalSize;
+            message += "📈 **Progresso:** " + String(progress) + "%\n";
+          }
+          break;
+        case OTA_SUCCESS:
+          message += "✅ **Status:** Atualização concluída\n";
+          break;
+        case OTA_ERROR:
+          message += "❌ **Status:** Erro na atualização\n";
+          message += "💬 **Erro:** " + info.lastError + "\n";
+          break;
+      }
+      
+      if (info.lastUpdateTime > 0) {
+        message += "🕒 **Última atualização:** " + String(info.lastUpdateTime) + "ms atrás\n";
+      }
+      
+      bot.sendMessage(chat_id, message, "Markdown");
     }
   }
 }
@@ -153,6 +203,7 @@ void setup() {
   xTaskCreatePinnedToCore(buttonTask, "Button Task", 2048, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(telegramTask, "Telegram", 8192, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(mp3Task, "MP3 Task", 4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(otaTask, "OTA Task", 8192, NULL, 1, NULL, 1);
 }
 
 void loop() {
