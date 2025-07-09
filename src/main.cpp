@@ -12,12 +12,13 @@
 #include "tasks/ota_task.h"
 #include "actuators/mp3_player.h"
 #include "ota/ota_manager.h"
+#include "config/distance_config.h"
 
-#define BOT_TOKEN "7788356248:AAHG9BV8U_3qRmIWvW9j1-68_-Sraj0zeN0"
-#define CHAT_ID "7794870956"
+#define BOT_TOKEN "7258679771:AAGV6i7Lr5UAhMstclHGn0ETOYbd2vGZLvo"
+#define CHAT_ID "976525165"
 
-#define SSID "A25"
-#define PASSWORD "wifisga25"
+#define SSID "iPhone de Isa"
+#define PASSWORD "isa12345"
 
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOT_TOKEN, client);
@@ -58,6 +59,8 @@ void handleNewMessages(int numNewMessages) {
       welcome += "/clearlogs\n";
       welcome += "/voz\n";
       welcome += "/volume <0-30>\n";
+      welcome += "/alterardistancia <próximo> <aproximando> <distante>\n";
+      welcome += "/distancia\n";
       welcome += "/ota\n";
       welcome += "/otastatus";
       bot.sendMessage(chat_id, welcome, "");
@@ -97,7 +100,60 @@ void handleNewMessages(int numNewMessages) {
         bot.sendMessage(chat_id, "❌ Volume deve estar entre 0 e 30. Exemplo: /volume 15", "");
       }
     }
-    else if (text == "/ota") {
+    else if (text.startsWith("/alterardistancia")) {
+      // Extrai os valores de distância do comando
+      String params = text.substring(17); // Remove "/alterardistancia "
+      params.trim();
+      
+      // Divide os parâmetros por espaço
+      int space1 = params.indexOf(' ');
+      int space2 = params.indexOf(' ', space1 + 1);
+      
+      if (space1 > 0 && space2 > space1) {
+        float proximo = params.substring(0, space1).toFloat();
+        float aproximando = params.substring(space1 + 1, space2).toFloat();
+        float distante = params.substring(space2 + 1).toFloat();
+        
+        if (validateDistanceLimits(proximo, aproximando, distante)) {
+          setDistanceLimits(proximo, aproximando, distante);
+          String message = "📏 **Limites de distância atualizados:**\n\n";
+          message += "🟢 **Próximo:** " + String(proximo, 1) + " cm\n";
+          message += "🟡 **Aproximando:** " + String(aproximando, 1) + " cm\n";
+          message += "🔴 **Distante:** " + String(distante, 1) + " cm\n\n";
+          message += "✅ Configuração salva com sucesso!";
+          bot.sendMessage(chat_id, message, "Markdown");
+        } else {
+          String errorMsg = "❌ **Valores inválidos!**\n\n";
+          errorMsg += "📋 **Regras:**\n";
+          errorMsg += "• Valores devem estar entre 1 e 500 cm\n";
+          errorMsg += "• Próximo < Aproximando < Distante\n";
+          errorMsg += "• Use números decimais (ex: 10.5)\n\n";
+          errorMsg += "💡 **Exemplo:** `/alterardistancia 8.5 15.0 25.0`";
+          bot.sendMessage(chat_id, errorMsg, "Markdown");
+        }
+      } else {
+        String errorMsg = "❌ **Formato inválido!**\n\n";
+        errorMsg += "📋 **Uso correto:**\n";
+        errorMsg += "`/alterardistancia <próximo> <aproximando> <distante>`\n\n";
+        errorMsg += "💡 **Exemplo:** `/alterardistancia 8.5 15.0 25.0`\n\n";
+        errorMsg += "📊 **Valores atuais:**\n";
+        DistanceLimits current = getDistanceLimits();
+        errorMsg += "• Próximo: " + String(current.proximo, 1) + " cm\n";
+        errorMsg += "• Aproximando: " + String(current.aproximando, 1) + " cm\n";
+        errorMsg += "• Distante: " + String(current.distante, 1) + " cm";
+        bot.sendMessage(chat_id, errorMsg, "Markdown");
+             }
+     }
+     else if (text == "/distancia") {
+       DistanceLimits limits = getDistanceLimits();
+       String message = "📏 **Limites de distância atuais:**\n\n";
+       message += "🟢 **Próximo:** " + String(limits.proximo, 1) + " cm\n";
+       message += "🟡 **Aproximando:** " + String(limits.aproximando, 1) + " cm\n";
+       message += "🔴 **Distante:** " + String(limits.distante, 1) + " cm\n\n";
+       message += "💡 Use `/alterardistancia` para modificar estes valores.";
+       bot.sendMessage(chat_id, message, "Markdown");
+     }
+     else if (text == "/ota") {
       if (isOTAEnabled()) {
         String ip = WiFi.localIP().toString();
         String message = "🔧 **Servidor OTA Ativo**\n\n";
@@ -173,6 +229,9 @@ void setup() {
   if (!LittleFS.begin(true)) {
     logPrintln("[ERRO] LittleFS não pôde ser montado.");
   }
+
+  // Inicializar configuração de distância
+  initDistanceConfig();
 
   if (!isWakingFromDeepSleep()) {
     logPrintln("[BOOT] Normal startup. Going to sleep...");

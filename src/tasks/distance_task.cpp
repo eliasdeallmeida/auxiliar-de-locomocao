@@ -2,6 +2,7 @@
 #include "sensors/distance_sensor.h"
 #include "actuators/vibration_motor.h"
 #include "logs/log_manager.h"
+#include "config/distance_config.h"
 #include <Arduino.h>
 #include "tasks/mp3_task.h"
 
@@ -11,19 +12,22 @@ void distanceTask(void* parameter) {
     logPrintf("[DISTANCE] %.2f cm\n", distance);
     requestProximityAudio(distance);
 
+    // Obtém os limites configurados
+    DistanceLimits limits = getDistanceLimits();
+    
     String message;
     
-    if (distance <= 10.0) {
+    if (distance <= limits.proximo) {
       message = "Próximo";
       logPrintln(">> " + message);
       vibrateWithIntensity(255);
     }
-    else if (distance <= 20.0) {
+    else if (distance <= limits.aproximando) {
       message = "Aproximando";
       logPrintln(">> " + message);
       vibrateWithIntensity(190);
     }
-    else if (distance <= 30.0) {
+    else if (distance <= limits.distante) {
       message = "Distante";
       logPrintln(">> " + message);
       vibrateWithIntensity(130);
