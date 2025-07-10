@@ -90,15 +90,38 @@ void handleNewMessages(int numNewMessages) {
       }
     }
     else if (text.startsWith("/volume")) {
-      // Extrai o valor do volume do comando
-      String volumeStr = text.substring(8); // Remove "/volume "
-      int volume = volumeStr.toInt();
-      
-      if (volume >= 0 && volume <= 30) {
-        setVolume(volume);
-        bot.sendMessage(chat_id, "🔊 Volume alterado para: " + String(volume), "");
+      // Verifica se o comando tem parâmetros
+      if (text == "/volume") {
+        String helpMsg = "🔊 **Comando Volume**\n\n";
+        helpMsg += "📋 **Uso correto:**\n";
+        helpMsg += "`/volume <valor>`\n\n";
+        helpMsg += "📊 **Parâmetros:**\n";
+        helpMsg += "• `<valor>`: Número entre 0 e 30\n\n";
+        helpMsg += "🔊 **Volume atual:** " + String(getCurrentVolume()) + "/30";
+        bot.sendMessage(chat_id, helpMsg, "Markdown");
       } else {
-        bot.sendMessage(chat_id, "❌ Volume deve estar entre 0 e 30. Exemplo: /volume 15", "");
+        // Extrai o valor do volume do comando
+        String volumeStr = text.substring(8); // Remove "/volume "
+        volumeStr.trim(); // Remove espaços em branco
+        
+        if (volumeStr.length() == 0) {
+          String helpMsg = "🔊 **Comando Volume**\n\n";
+          helpMsg += "📋 **Uso correto:**\n";
+          helpMsg += "`/volume <valor>`\n\n";
+          helpMsg += "📊 **Parâmetros:**\n";
+          helpMsg += "• `<valor>`: Número entre 0 e 30\n\n";
+          helpMsg += "🔊 **Volume atual:** " + String(getCurrentVolume()) + "/30";
+          bot.sendMessage(chat_id, helpMsg, "Markdown");
+        } else {
+          int volume = volumeStr.toInt();
+          
+          if (volume >= 0 && volume <= 30) {
+            setVolume(volume);
+            bot.sendMessage(chat_id, "🔊 Volume alterado para: " + String(volume), "");
+          } else {
+            bot.sendMessage(chat_id, "❌ Volume deve estar entre 0 e 30. Exemplo: /volume 15", "");
+          }
+        }
       }
     }
     else if (text.startsWith("/alterardistancia")) {

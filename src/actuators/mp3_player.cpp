@@ -40,11 +40,19 @@ VoiceGender getVoiceGender() {
 
 }
 
+static int currentVolume = 25; // Variável estática para rastrear o volume atual
+
 void setVolume(int volume) {
     // Garante que o volume esteja entre 0 e 30
     if (volume < 0) volume = 0;
     if (volume > 30) volume = 30;
 
     mp3.volume(volume);
+    currentVolume = volume; // Atualiza a variável de controle
     logPrintf("[MP3] Volume alterado para: %d\n", volume);
+}
+
+int getCurrentVolume() {
+    // Retorna o volume atual
+    return currentVolume;
 }
