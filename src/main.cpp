@@ -11,6 +11,7 @@
 #include "tasks/mp3_task.h"
 #include "tasks/ota_task.h"
 #include "actuators/mp3_player.h"
+#include "actuators/vibration_motor.h"
 #include "ota/ota_manager.h"
 #include "config/distance_config.h"
 
@@ -248,19 +249,33 @@ void setup() {
     client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   #endif
 
+  // Criar tasks primeiro para inicializar o MP3 player
+
+  xTaskCreatePinnedToCore(mp3Task, "MP3 Task", 4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(buttonTask, "Button Task", 2048, NULL, 2, NULL, 1);
+
+
+  // Aguardar um pouco para o MP3 player inicializar
+  delay(1000);
+
+  // Tocar áudio de conexão WiFi e iniciar vibração
+  playWifiConnectionAudio();
+  vibrateWithIntensity(128); // Vibração média durante conexão
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     logPrintln("Conectando com o WiFi...");
   }
 
+  // Parar vibração quando conectar
+  stopVibration();
+
   logPrintln("IP adquirido da rede WiFi: " + WiFi.localIP().toString());
 
   configTime(-3 * 3600, 0, "pool.ntp.org");
-
+  
   xTaskCreatePinnedToCore(distanceTask, "Distance Task", 4096, NULL, 1, NULL, 0);
-  xTaskCreatePinnedToCore(buttonTask, "Button Task", 2048, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(telegramTask, "Telegram", 8192, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(mp3Task, "MP3 Task", 4096, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(otaTask, "OTA Task", 8192, NULL, 1, NULL, 1);
 }
 

@@ -24,6 +24,13 @@ void playProximityAudio(int fileNumber) {
     mp3.play(fileNumber); // Toca o arquivo correspondente
 }
 
+void playWifiConnectionAudio() {
+    // 7 = conectando wifi (masculino), 8 = conectando wifi (feminino)
+    int fileNumber = (currentGender == MALE) ? 8 : 7;
+    mp3.play(fileNumber);
+    logPrintln("[MP3] Tocando áudio de conexão WiFi");
+}
+
 void setVoiceGender(VoiceGender gender) {
     currentGender = gender;
 }
