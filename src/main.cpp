@@ -15,11 +15,11 @@
 #include "ota/ota_manager.h"
 #include "config/distance_config.h"
 
-#define BOT_TOKEN "7258679771:AAGV6i7Lr5UAhMstclHGn0ETOYbd2vGZLvo"
-#define CHAT_ID "976525165"
+#define BOT_TOKEN "BOT_TOKEN"
+#define CHAT_ID "CHAT_ID"
 
-#define SSID "iPhone de Isa"
-#define PASSWORD "isa12345"
+#define SSID "SSID"
+#define PASSWORD "PASSWORD"
 
 WiFiClientSecure client;
 UniversalTelegramBot bot(BOT_TOKEN, client);
